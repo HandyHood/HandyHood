@@ -20,7 +20,7 @@ exports.createTask = async (req, res) => {
       .input("Description", sql.VarChar(200), description)
       .input("Status", sql.VarChar(50), status)
       .query(
-        "INSERT INTO Task (CreatorUserID, LocationID, Title, Description, Status) VALUES (@CreatorUserID, @LocationID, @Title, @Description, @Status)"
+        "INSERT INTO Task (CreatorUserID, LocationID, Title, Description, Status) VALUES (@CreatorUserID, @LocationID, @Title, @Description, @Status)",
       );
     res.status(201).json({ message: "Task created successfully" });
   } catch (err) {
@@ -46,13 +46,52 @@ exports.updateTaskStatus = async (req, res) => {
 exports.deleteTask = async (req, res) => {
   const { taskID } = req.params;
   try {
-    await (await pool).request().input("TaskID", sql.Int, taskID).query("DELETE FROM Task WHERE TaskID = @TaskID");
+    await (await pool)
+      .request()
+      .input("TaskID", sql.Int, taskID)
+      .query("DELETE FROM Task WHERE TaskID = @TaskID");
     res.json({ message: "Task deleted successfully" });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
+exports.addUser = async (req, res) => {
+  const { Username, Email, Password, Name, DateOfBirth, Phone, Address } =
+    req.body;
 
+  try {
+    // Validate input (optional but recommended)
+    if (
+      !Username ||
+      !Email ||
+      !Password ||
+      !Name ||
+      !DateOfBirth ||
+      !Phone ||
+      !Address
+    ) {
+      return res.status(400).json({ error: "All fields are required" });
+    }
+
+    // Execute stored procedure
+    const result = await (
+      await pool
+    )
+      .request()
+      .input("Username", sql.VarChar(50), Username)
+      .input("Email", sql.VarChar(50), Email)
+      .input("Password", sql.NVarChar(sql.MAX), Password)
+      .input("Name", sql.VarChar(50), Name)
+      .input("DateOfBirth", sql.Date, new Date(DateOfBirth)) // Ensure DateOfBirth is a valid date
+      .input("Phone", sql.VarChar(15), Phone)
+      .input("Address", sql.VarChar(50), Address)
+      .execute("AddUser"); // Call the stored procedure
+
+    res.status(201).json({
+      message: "User added successfully",
+      data: result.recordset, // Return any output if needed
+    });
+    
 exports.assignTask = async (req, res) => {
   const { taskId, userId } = req.body;
   try {
@@ -75,6 +114,7 @@ exports.assignTask = async (req, res) => {
       .query("INSERT INTO Schedule (TaskID, VolunteerUserID, Date, Time) VALUES (@TaskID, @UserID, GETDATE(), GETDATE())");
 
     res.json({ message: "User assigned successfully" });
+    
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
