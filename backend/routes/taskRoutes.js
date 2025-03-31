@@ -7,5 +7,6 @@ router.post("/", taskController.createTask);
 router.put("/:taskID", taskController.updateTaskStatus);
 router.delete("/:taskID", taskController.deleteTask);
 router.post("/addUser", taskController.addUser);
+router.post("/assign", taskController.assignTask);
 
 module.exports = router;

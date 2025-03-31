@@ -55,7 +55,6 @@ exports.deleteTask = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
-
 exports.addUser = async (req, res) => {
   const { Username, Email, Password, Name, DateOfBirth, Phone, Address } =
     req.body;
@@ -92,6 +91,30 @@ exports.addUser = async (req, res) => {
       message: "User added successfully",
       data: result.recordset, // Return any output if needed
     });
+    
+exports.assignTask = async (req, res) => {
+  const { taskId, userId } = req.body;
+  try {
+    const poolInstance = await pool;
+
+    const checkResult = await poolInstance
+      .request()
+      .input("TaskID", sql.Int, taskId)
+      .input("UserID", sql.Int, userId)
+      .query("SELECT * FROM Schedule WHERE TaskID = @TaskID AND VolunteerUserID = @UserID");
+
+    if (checkResult.recordset.length > 0) {
+      return res.status(400).json({ message: "User already assigned to this task" });
+    }
+
+    await poolInstance
+      .request()
+      .input("TaskID", sql.Int, taskId)
+      .input("UserID", sql.Int, userId)
+      .query("INSERT INTO Schedule (TaskID, VolunteerUserID, Date, Time) VALUES (@TaskID, @UserID, GETDATE(), GETDATE())");
+
+    res.json({ message: "User assigned successfully" });
+    
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
