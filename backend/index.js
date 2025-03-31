@@ -8,10 +8,15 @@ app.use(cors());
 app.use(express.json());
 
 const taskRoutes = require("./routes/taskRoutes");
+const authRoutes = require("./routes/authRoutes");
+const userRoutes = require("./routes/userRoutes");
+
 app.use("/api/tasks", taskRoutes);
+app.use("/api/auth", authRoutes);
+app.use("/api/users", userRoutes);
 
 app.get("/", (req, res) => {
-  res.send("Community Help API is running...");
+  res.send("HandyHood API is running...");
 });
 
 const PORT = process.env.PORT || 5001;

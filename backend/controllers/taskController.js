@@ -52,3 +52,30 @@ exports.deleteTask = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
+exports.assignTask = async (req, res) => {
+  const { taskId, userId } = req.body;
+  try {
+    const poolInstance = await pool;
+
+    const checkResult = await poolInstance
+      .request()
+      .input("TaskID", sql.Int, taskId)
+      .input("UserID", sql.Int, userId)
+      .query("SELECT * FROM Schedule WHERE TaskID = @TaskID AND VolunteerUserID = @UserID");
+
+    if (checkResult.recordset.length > 0) {
+      return res.status(400).json({ message: "User already assigned to this task" });
+    }
+
+    await poolInstance
+      .request()
+      .input("TaskID", sql.Int, taskId)
+      .input("UserID", sql.Int, userId)
+      .query("INSERT INTO Schedule (TaskID, VolunteerUserID, Date, Time) VALUES (@TaskID, @UserID, GETDATE(), GETDATE())");
+
+    res.json({ message: "User assigned successfully" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
