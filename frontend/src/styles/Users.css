@@ -1,0 +1,25 @@
+.users-container {
+    padding: 20px;
+    background-color: #f4f7fa;
+    min-height: 100vh;
+    text-align: center;
+  }
+  
+  .users-header {
+    color: #2c3e50;
+    margin-bottom: 20px;
+  }
+  
+  .users-list {
+    list-style: none;
+    padding: 0;
+  }
+  
+  .users-item {
+    padding: 10px;
+    background-color: #fff;
+    border-radius: 5px;
+    margin-bottom: 10px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    color: #2c3e50;
+  }

@@ -6,6 +6,10 @@ export const login = async (email, password) => {
   return await axios.post(`${API_URL}/auth/login`, { email, password });
 };
 
+export const signup = (formData) => {
+  return axios.post(`${API_URL}/signup`, formData);
+};
+
 export const getTasks = async () => {
   const response = await axios.get(`${API_URL}/tasks`);
   return response.data;
@@ -29,4 +33,13 @@ export const updateTaskStatus = async (taskID, status) => {
 
 export const deleteTask = async (taskID) => {
   return await axios.delete(`${API_URL}/tasks/${taskID}`);
+};
+
+export const assignUserToTask = async (taskID, userID, date, time) => {
+  return axios.post(`${API_URL}/schedule`, {
+    taskID,
+    userID,
+    date,
+    time,
+  });
 };

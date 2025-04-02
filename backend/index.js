@@ -14,6 +14,7 @@ const userRoutes = require("./routes/userRoutes");
 app.use("/api/tasks", taskRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
+app.use("/api/schedule", scheduleRoutes);
 
 app.get("/", (req, res) => {
   res.send("HandyHood API is running...");
