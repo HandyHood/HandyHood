@@ -7,7 +7,7 @@ export const login = async (email, password) => {
 };
 
 export const signup = (formData) => {
-  return axios.post(`${API_URL}/signup`, formData);
+  return axios.post(`${API_URL}/auth/signup`, formData);
 };
 
 export const getTasks = async () => {
@@ -21,6 +21,7 @@ export const getUsers = async () => {
 };
 
 export const assignTask = async (taskId, userId) => {
+  console.log(taskId, userId);
   return await axios.post(`${API_URL}/tasks/assign`, { taskId, userId });
 };
 export const createTask = async (task) => {
@@ -36,7 +37,7 @@ export const deleteTask = async (taskID) => {
 };
 
 export const assignUserToTask = async (taskID, userID, date, time) => {
-  return axios.post(`${API_URL}/schedule`, {
+  return axios.post(`${API_URL}/schedule/assign`, {
     taskID,
     userID,
     date,

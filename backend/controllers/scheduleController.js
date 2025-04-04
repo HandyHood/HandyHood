@@ -17,7 +17,7 @@ const assignUserToTask = async (req, res) => {
     const userCheck = await dbPool
       .request()
       .input("userID", userID)
-      .query("SELECT * FROM [User] WHERE UserID = @userID");
+      .query("SELECT * FROM UserAccount WHERE UserID = @userID");
     if (userCheck.recordset.length === 0) {
       return res.status(404).json({ error: "User not found" });
     }
@@ -30,7 +30,7 @@ const assignUserToTask = async (req, res) => {
       .input("date", date)
       .input("time", time)
       .query(
-        "INSERT INTO Schedule (TaskID, UserID, Date, Time) VALUES (@taskID, @userID, @date, @time)"
+        "INSERT INTO Schedule (TaskID, VolunteerUserID, Date, Time) VALUES (@taskID, @userID, @date, @time)",
       );
 
     res.status(201).json({ message: "User assigned to task successfully" });

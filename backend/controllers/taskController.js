@@ -4,11 +4,11 @@ const { pool, sql } = require("../db/db");
 exports.getAllTasks = async (req, res) => {
   try {
     const result = await (await pool).request().query(`
-      SELECT t.TaskID, t.CreatorUserID, t.LocationID, t.Title, t.Description, t.Status, 
-             s.UserID AS AssignedUserID, u.Username AS AssignedUsername
-      FROM Task t
-      LEFT JOIN Schedule s ON t.TaskID = s.TaskID
-      LEFT JOIN [User] u ON s.UserID = u.UserID
+      SELECT t.TaskID, t.CreatorUserID, t.LocationID, t.Title, t.Description, t.Status,
+                   s.VolunteerUserID AS AssignedUserID, u.Username AS AssignedUsername
+            FROM Task t
+            LEFT JOIN Schedule s ON t.TaskID = s.TaskID
+            LEFT JOIN UserAccount u ON s.VolunteerUserID = u.UserID;
     `);
     res.json(result.recordset);
   } catch (err) {
@@ -28,7 +28,7 @@ exports.createTask = async (req, res) => {
       .input("Description", sql.VarChar(200), description)
       .input("Status", sql.VarChar(50), status)
       .query(
-        "INSERT INTO Task (CreatorUserID, LocationID, Title, Description, Status) VALUES (@CreatorUserID, @LocationID, @Title, @Description, @Status)"
+        "INSERT INTO Task (CreatorUserID, LocationID, Title, Description, Status) VALUES (@CreatorUserID, @LocationID, @Title, @Description, @Status)",
       );
     res.status(201).json({ message: "Task created successfully" });
   } catch (err) {
@@ -52,7 +52,9 @@ exports.updateTaskStatus = async (req, res) => {
     res.json({ message: "Task status updated successfully" });
   } catch (err) {
     console.error("Error updating task status:", err);
-    res.status(500).json({ error: "Failed to update task status: " + err.message });
+    res
+      .status(500)
+      .json({ error: "Failed to update task status: " + err.message });
   }
 };
 
@@ -85,6 +87,7 @@ exports.assignTask = async (req, res) => {
       .input("TaskID", sql.Int, taskID)
       .query("SELECT * FROM Task WHERE TaskID = @TaskID");
     if (taskCheck.recordset.length === 0) {
+      console.log("task not found!!");
       return res.status(404).json({ error: "Task not found" });
     }
 
@@ -92,8 +95,9 @@ exports.assignTask = async (req, res) => {
     const userCheck = await poolInstance
       .request()
       .input("UserID", sql.Int, userID)
-      .query("SELECT * FROM [User] WHERE UserID = @UserID");
+      .query("SELECT * FROM UserAccount WHERE UserID = @UserID");
     if (userCheck.recordset.length === 0) {
+      console.log("User not found!!");
       return res.status(404).json({ error: "User not found" });
     }
 
@@ -102,10 +106,14 @@ exports.assignTask = async (req, res) => {
       .request()
       .input("TaskID", sql.Int, taskID)
       .input("UserID", sql.Int, userID)
-      .query("SELECT * FROM Schedule WHERE TaskID = @TaskID AND UserID = @UserID");
+      .query(
+        "SELECT * FROM Schedule WHERE TaskID = @TaskID AND VolunteerUserID = @UserID",
+      );
 
     if (checkResult.recordset.length > 0) {
-      return res.status(400).json({ message: "User already assigned to this task" });
+      return res
+        .status(400)
+        .json({ message: "User already assigned to this task" });
     }
 
     // Insert into Schedule table
@@ -116,12 +124,14 @@ exports.assignTask = async (req, res) => {
       .input("Date", sql.Date, date)
       .input("Time", sql.Time, time)
       .query(
-        "INSERT INTO Schedule (TaskID, UserID, Date, Time) VALUES (@TaskID, @UserID, @Date, @Time)"
+        "INSERT INTO Schedule (TaskID, VolunteerUserID, Date, Time) VALUES (@TaskID, @UserID, @Date, @Time)",
       );
 
     res.status(201).json({ message: "User assigned to task successfully" });
   } catch (err) {
     console.error("Error assigning user to task:", err);
-    res.status(500).json({ error: "Failed to assign user to task: " + err.message });
+    res
+      .status(500)
+      .json({ error: "Failed to assign user to task: " + err.message });
   }
 };
