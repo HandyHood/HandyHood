@@ -58,20 +58,79 @@ exports.updateTaskStatus = async (req, res) => {
   }
 };
 
+// exports.deleteTask = async (req, res) => {
+//   const { taskID } = req.params;
+//   try {
+//     const result = await (await pool).request().input("TaskID", sql.Int, taskID)
+//       .query(`DECLARE @ErrMsg NVARCHAR(4000);
+//       EXEC DeleteTask
+//           @TaskID = ,
+//           @ErrorMessage = @ErrMsg OUTPUT;
+
+//       IF @ErrMsg IS NOT NULL
+//           PRINT @ErrMsg;
+//       ELSE
+//           PRINT 'Successfully deleted task and schedule entries';`);
+//     if (result.rowsAffected[0] === 0) {
+//       return res.status(404).json({ error: "Task not found" });
+//     }
+//     res.json({ message: "Task deleted successfully" });
+//   } catch (err) {
+//     console.error("Error deleting task:", err);
+//     res.status(500).json({ error: "Failed to delete task: " + err.message });
+//   }
+// };
 exports.deleteTask = async (req, res) => {
   const { taskID } = req.params;
+
   try {
-    const result = await (await pool)
-      .request()
-      .input("TaskID", sql.Int, taskID)
-      .query("DELETE FROM Task WHERE TaskID = @TaskID");
-    if (result.rowsAffected[0] === 0) {
-      return res.status(404).json({ error: "Task not found" });
+    const poolInstance = await pool;
+    const transaction = new sql.Transaction(poolInstance);
+
+    await transaction.begin();
+
+    try {
+      // Delete from Schedule table
+      await transaction
+        .request()
+        .input("TaskID", sql.Int, taskID)
+        .query("DELETE FROM Schedule WHERE TaskID = @TaskID");
+
+      // Delete from Feedback table
+      await transaction
+        .request()
+        .input("TaskID", sql.Int, taskID)
+        .query("DELETE FROM Feedback WHERE TaskID = @TaskID");
+
+      // Delete from Notification table
+      await transaction
+        .request()
+        .input("TaskID", sql.Int, taskID)
+        .query("DELETE FROM Notification WHERE TaskID = @TaskID");
+
+      // Delete from Task table
+      const result = await transaction
+        .request()
+        .input("TaskID", sql.Int, taskID)
+        .query("DELETE FROM Task WHERE TaskID = @TaskID");
+
+      if (result.rowsAffected[0] === 0) {
+        await transaction.rollback();
+        return res.status(404).json({ error: "Task not found" });
+      }
+
+      await transaction.commit();
+      res.json({ message: "Task and related records deleted successfully" });
+    } catch (err) {
+      await transaction.rollback();
+      console.error("Error during transaction:", err);
+      res.status(500).json({ error: "Failed to delete task: " + err.message });
     }
-    res.json({ message: "Task deleted successfully" });
   } catch (err) {
-    console.error("Error deleting task:", err);
-    res.status(500).json({ error: "Failed to delete task: " + err.message });
+    console.error("Error connecting to database:", err);
+    res
+      .status(500)
+      .json({ error: "Database connection failed: " + err.message });
   }
 };
 

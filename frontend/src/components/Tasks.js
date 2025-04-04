@@ -1,7 +1,14 @@
 import { useEffect, useState } from "react";
-import { getTasks, createTask, updateTaskStatus, deleteTask, assignUserToTask, getUsers } from "../api";
+import {
+  getTasks,
+  createTask,
+  updateTaskStatus,
+  deleteTask,
+  assignUserToTask,
+  getUsers,
+} from "../api";
 import { useNavigate } from "react-router-dom";
-import "./styles/Tasks.css";
+import "../styles/Tasks.css";
 
 const Tasks = () => {
   const [tasks, setTasks] = useState([]);
@@ -149,7 +156,11 @@ const Tasks = () => {
                   <select
                     value={assignment.userID || ""}
                     onChange={(e) =>
-                      handleAssignmentChange(task.TaskID, "userID", e.target.value)
+                      handleAssignmentChange(
+                        task.TaskID,
+                        "userID",
+                        e.target.value,
+                      )
                     }
                     className="tasks-select"
                   >
@@ -164,7 +175,11 @@ const Tasks = () => {
                     type="date"
                     value={assignment.date || ""}
                     onChange={(e) =>
-                      handleAssignmentChange(task.TaskID, "date", e.target.value)
+                      handleAssignmentChange(
+                        task.TaskID,
+                        "date",
+                        e.target.value,
+                      )
                     }
                     className="tasks-input"
                   />
@@ -172,7 +187,11 @@ const Tasks = () => {
                     type="time"
                     value={assignment.time || ""}
                     onChange={(e) =>
-                      handleAssignmentChange(task.TaskID, "time", e.target.value)
+                      handleAssignmentChange(
+                        task.TaskID,
+                        "time",
+                        e.target.value,
+                      )
                     }
                     className="tasks-input"
                   />
